@@ -8,7 +8,7 @@ Group:		Applications
 # Source0:	http://asterisk-chan-dongle.googlecode.com/files/chan_dongle-%{version}.tgz
 # svn checkout http://asterisk-chan-dongle.googlecode.com/svn/trunk/ chan_dongle
 Source0:	chan_dongle-%{snap}.tar.bz2
-# Source0-md5:	4ced3ab7094b62be2a0e843a2d4b4111
+# Source0-md5:	de30dbb362a76d4783e9457c722465e8
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
