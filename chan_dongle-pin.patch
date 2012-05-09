@@ -1,0 +1,133 @@
+; hacky way to get PIN capability. Proper version should check AT+CPIN?
+; first and then decide if PIN is needed at all.
+; arekm@maven.pl, 20120409
+diff -ur ../../test/chan_dongle/at_command.c chan_dongle/at_command.c
+--- ../../test/chan_dongle/at_command.c	2012-04-26 11:11:01.000000000 +0200
++++ chan_dongle/at_command.c	2012-05-09 14:43:39.994983010 +0200
+@@ -148,6 +148,7 @@
+ 		ATQ_CMD_DECLARE_ST(CMD_AT_CGMR, cmd8),		/* Get software version */
+ 		ATQ_CMD_DECLARE_ST(CMD_AT_CMEE, cmd9),		/* set MS Error Report to 'ERROR' only  TODO: change to 1 or 2 and add support in response handlers */
+ 
++		ATQ_CMD_DECLARE_DYNI(CMD_AT_CPIN_NUMBER),
+ 		ATQ_CMD_DECLARE_ST(CMD_AT_CGSN, cmd10),		/* IMEI Read */
+ 		ATQ_CMD_DECLARE_ST(CMD_AT_CIMI, cmd11),		/* IMSI Read */
+ 		ATQ_CMD_DECLARE_ST(CMD_AT_CPIN, cmd12),		/* check is password authentication requirement and the remainder validation times */
+@@ -173,6 +174,7 @@
+ 	unsigned in, out;
+ 	int begin = -1;
+ 	int err;
++	char * ptmp0 = NULL;
+ 	char * ptmp1 = NULL;
+ 	char * ptmp2 = NULL;
+ 	pvt_t * pvt = cpvt->pvt;
+@@ -193,10 +195,18 @@
+ 			continue;
+ 		if(st_cmds[in].cmd == CMD_AT_U2DIAG && CONF_SHARED(pvt, u2diag) == -1)
+ 			continue;
++		if(st_cmds[in].cmd == CMD_AT_CPIN_NUMBER && (!CONF_UNIQ(pvt, pin) || !strlen(CONF_UNIQ(pvt, pin))))
++			continue;
+ 
+ 		memcpy(&cmds[out], &st_cmds[in], sizeof(st_cmds[in]));
+ 
+-		if(cmds[out].cmd == CMD_AT_U2DIAG)
++		if(st_cmds[in].cmd == CMD_AT_CPIN_NUMBER) {
++			err = at_fill_generic_cmd(&cmds[out], "AT+CPIN=\"%s\"\r", CONF_UNIQ(pvt, pin));
++			if (err)
++				goto failure;
++			ptmp0 = cmds[out].data;
++		}
++		else if(cmds[out].cmd == CMD_AT_U2DIAG)
+ 		{
+ 			err = at_fill_generic_cmd(&cmds[out], "AT^U2DIAG=%d\r", CONF_SHARED(pvt, u2diag));
+ 			if(err)
+@@ -219,6 +229,8 @@
+ 		return at_queue_insert(cpvt, cmds, out, 0);
+ 	return 0;
+ failure:
++	if(ptmp0)
++		ast_free(ptmp0);
+ 	if(ptmp1)
+ 		ast_free(ptmp1);
+ 	if(ptmp2)
+diff -ur ../../test/chan_dongle/at_command.h chan_dongle/at_command.h
+--- ../../test/chan_dongle/at_command.h	2012-04-26 11:11:01.000000000 +0200
++++ chan_dongle/at_command.h	2012-05-08 12:20:28.218759636 +0200
+@@ -43,6 +43,7 @@
+ 
+ 	CMD_AT_COPS,
+ 	CMD_AT_COPS_INIT,
++	CMD_AT_CPIN_NUMBER,
+ 	CMD_AT_CPIN,
+ 	CMD_AT_CPMS,
+ 
+diff -ur ../../test/chan_dongle/at_response.c chan_dongle/at_response.c
+--- ../../test/chan_dongle/at_response.c	2012-04-26 11:11:01.000000000 +0200
++++ chan_dongle/at_response.c	2012-05-09 14:39:54.298193606 +0200
+@@ -135,6 +135,7 @@
+ 			case CMD_AT_CGSN:
+ 			case CMD_AT_CIMI:
+ 			case CMD_AT_CPIN:
++			case CMD_AT_CPIN_NUMBER:
+ 			case CMD_AT_CCWA_SET:
+ 			case CMD_AT_CCWA_STATUS:
+ 			case CMD_AT_CHLD_2:
+@@ -364,6 +365,11 @@
+ 				ast_log (LOG_ERROR, "[%s] Getting IMSI number failed\n", PVT_ID(pvt));
+ 				goto e_return;
+ 
++			case CMD_AT_CPIN_NUMBER:
++				ast_log (LOG_ERROR, "[%s] Error sending PIN - ignored\n", PVT_ID(pvt));
++				break;
++				//goto e_return;
++
+ 			case CMD_AT_CPIN:
+ 				ast_log (LOG_ERROR, "[%s] Error checking PIN state\n", PVT_ID(pvt));
+ 				goto e_return;
+diff -ur ../../test/chan_dongle/dc_config.c chan_dongle/dc_config.c
+--- ../../test/chan_dongle/dc_config.c	2012-04-26 11:11:01.000000000 +0200
++++ chan_dongle/dc_config.c	2012-05-09 14:43:14.849045773 +0200
+@@ -32,11 +32,13 @@
+ 	const char * data_tty;
+ 	const char * imei;
+ 	const char * imsi;
++	const char * pin;
+ 
+ 	audio_tty = ast_variable_retrieve (cfg, cat, "audio");
+ 	data_tty  = ast_variable_retrieve (cfg, cat, "data");
+ 	imei = ast_variable_retrieve (cfg, cat, "imei");
+ 	imsi = ast_variable_retrieve (cfg, cat, "imsi");
++	pin = ast_variable_retrieve (cfg, cat, "pin");
+ 
+ 	if(imei && strlen(imei) != IMEI_SIZE) {
+ 		ast_log (LOG_WARNING, "[%s] Ignore invalid IMEI value '%s'\n", cat, imei);
+@@ -46,6 +48,10 @@
+ 		ast_log (LOG_WARNING, "[%s] Ignore invalid IMSI value '%s'\n", cat, imsi);
+ 		imsi = NULL;
+ 		}
++	if(pin && strlen(pin) == 0) {
++		ast_log (LOG_WARNING, "[%s] Ignore invalid PIN value '%s'\n", cat, pin);
++		pin = NULL;
++		}
+ 
+ 	if(!audio_tty && !imei && !imsi)
+ 	{
+@@ -70,6 +76,7 @@
+ 	ast_copy_string (config->audio_tty,	S_OR(audio_tty, ""), sizeof (config->audio_tty));
+ 	ast_copy_string (config->imei,		S_OR(imei, ""),	     sizeof (config->imei));
+ 	ast_copy_string (config->imsi,		S_OR(imsi, ""),	     sizeof (config->imsi));
++	ast_copy_string (config->pin,		S_OR(pin, ""),	     sizeof (config->pin));
+ 
+ 	return 0;
+ }
+diff -ur ../../test/chan_dongle/dc_config.h chan_dongle/dc_config.h
+--- ../../test/chan_dongle/dc_config.h	2012-04-26 11:11:01.000000000 +0200
++++ chan_dongle/dc_config.h	2012-05-09 14:41:42.945044440 +0200
+@@ -109,6 +109,7 @@
+ 	char			data_tty[DEVPATHLEN];		/*!< tty for AT commands */
+ 	char			imei[IMEI_SIZE+1];		/*!< search device by imei */
+ 	char			imsi[IMSI_SIZE+1];		/*!< search device by imsi */
++	char			pin[128]; // how long it can be really?
+ } dc_uconfig_t;
+ 
+ /* all Config settings join in one place */
+
