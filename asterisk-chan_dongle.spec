@@ -12,6 +12,8 @@ Source0:	chan_dongle-%{snap}.tar.bz2
 Patch0:		chan_dongle-pin.patch
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
+Requires:	usb-modeswitch
+Requires:	usb-modeswitch-data
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
