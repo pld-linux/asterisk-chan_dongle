@@ -1,4 +1,4 @@
-%define	snap	20120426
+%define	snap	20131018
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
@@ -8,7 +8,7 @@ Group:		Applications
 # Source0:	http://asterisk-chan-dongle.googlecode.com/files/chan_dongle-%{version}.tgz
 # svn checkout http://asterisk-chan-dongle.googlecode.com/svn/trunk/ chan_dongle
 Source0:	chan_dongle-%{snap}.tar.bz2
-# Source0-md5:	de30dbb362a76d4783e9457c722465e8
+# Source0-md5:	eb230442d44c5221d07633de4ea1fd21
 Patch0:		chan_dongle-pin.patch
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
