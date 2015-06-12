@@ -1,17 +1,16 @@
-%define	snap	20131018
+%define	snap	20150612
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
 Release:	0.%{snap}.1
 License:	GPL v2
 Group:		Applications
-# Source0:	http://asterisk-chan-dongle.googlecode.com/files/chan_dongle-%{version}.tgz
-# svn checkout http://asterisk-chan-dongle.googlecode.com/svn/trunk/ chan_dongle
-Source0:	chan_dongle-%{snap}.tar.bz2
-# Source0-md5:	eb230442d44c5221d07633de4ea1fd21
+Source0:	https://github.com/bg111/asterisk-chan-dongle/archive/master.zip
+# Source0-md5:	8527ea21c083821fb0bd69c834d17737
 Patch0:		chan_dongle-pin.patch
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
+BuildRequires:	asterisk-devel < 1.9
 Requires:	usb-modeswitch
 Requires:	usb-modeswitch-data
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -33,7 +32,7 @@ modems (dongles). At this moment, the supported features are:
 - Receive DTMF
 
 %prep
-%setup -q -n chan_dongle
+%setup -q -n asterisk-chan-dongle-master
 %patch0 -p1
 
 %build
