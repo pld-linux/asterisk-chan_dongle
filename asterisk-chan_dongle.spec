@@ -2,15 +2,18 @@
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
-Release:	0.%{snap}.1
+Release:	0.%{snap}.2
 License:	GPL v2
 Group:		Applications
 Source0:	https://github.com/bg111/asterisk-chan-dongle/archive/master.zip
 # Source0-md5:	8527ea21c083821fb0bd69c834d17737
 Patch0:		chan_dongle-pin.patch
+# https://patch-diff.githubusercontent.com/raw/bg111/asterisk-chan-dongle/pull/216.patch
+Patch1:		https://patch-diff.githubusercontent.com/raw/bg111/asterisk-chan-dongle/pull/216.patch
+# Patch1-md5:	32e612b27570a06a67f2295f88b4ede1
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
-BuildRequires:	asterisk-devel < 1.9
+BuildRequires:	awk
 Requires:	usb-modeswitch
 Requires:	usb-modeswitch-data
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -34,12 +37,14 @@ modems (dongles). At this moment, the supported features are:
 %prep
 %setup -q -n asterisk-chan-dongle-master
 %patch0 -p1
+%patch1 -p1
 
 %build
 install /usr/share/automake/{config.*,install-sh,missing} .
 %{__aclocal}
 %{__autoconf}
-%configure
+%configure \
+	--with-astversion=$(rpm -q --queryformat "%{VERSION}\n" asterisk-devel | awk -F. ' { printf("%02d%02d%02d", $1, $2, $3); } ')
 %{__make}
 
 %install
