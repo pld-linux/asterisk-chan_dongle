@@ -44,7 +44,7 @@ install /usr/share/automake/{config.*,install-sh,missing} .
 %{__aclocal}
 %{__autoconf}
 %configure \
-	--with-astversion=$(rpm -q --queryformat "%{VERSION}\n" asterisk-devel | awk -F. ' { printf("%02d%02d%02d", $1, $2, $3); } ')
+	--with-astversion=$(rpm -q --queryformat "%{VERSION}\n" asterisk-devel | awk -F. ' { printf("%d%02d%02d", $1, $2, $3); } ')
 %{__make}
 
 %install
