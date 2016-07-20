@@ -2,7 +2,7 @@
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
-Release:	0.%{snap}.2
+Release:	0.%{snap}.3
 License:	GPL v2
 Group:		Applications
 Source0:	https://github.com/bg111/asterisk-chan-dongle/archive/master.zip
