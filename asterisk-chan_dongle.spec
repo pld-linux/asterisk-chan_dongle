@@ -1,16 +1,16 @@
-%define	snap	20150612
+%define	snap	20161221
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
-Release:	0.%{snap}.3
+Release:	0.%{snap}.1
 License:	GPL v2
 Group:		Applications
 Source0:	https://github.com/bg111/asterisk-chan-dongle/archive/master.zip
-# Source0-md5:	8527ea21c083821fb0bd69c834d17737
+# Source0-md5:	6e741be5b1be052c14d6fea48277626c
 Patch0:		chan_dongle-pin.patch
 # https://patch-diff.githubusercontent.com/raw/bg111/asterisk-chan-dongle/pull/216.patch
 Patch1:		https://patch-diff.githubusercontent.com/raw/bg111/asterisk-chan-dongle/pull/216.patch
-# Patch1-md5:	32e612b27570a06a67f2295f88b4ede1
+# Patch1-md5:	d2a7d524ba60f597ad436cb115f5baf5
 URL:		http://wiki.e1550.mobi/
 BuildRequires:	asterisk-devel >= 1.8
 BuildRequires:	awk
@@ -58,6 +58,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc BUGS README.txt TODO.txt etc/extensions.conf
+%doc BUGS README.md TODO.txt etc/extensions.conf
 %attr(755,root,root) %{_libdir}/asterisk/modules/chan_dongle.so
 %attr(640,root,asterisk) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/asterisk/dongle.conf
