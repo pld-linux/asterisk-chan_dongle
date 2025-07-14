@@ -36,8 +36,8 @@ modems (dongles). At this moment, the supported features are:
 
 %prep
 %setup -q -n asterisk-chan-dongle-master
-%patch0 -p1
-%patch1 -p1
+%patch -P0 -p1
+%patch -P1 -p1
 
 %build
 install /usr/share/automake/{config.*,install-sh,missing} .
