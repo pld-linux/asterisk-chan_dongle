@@ -2,7 +2,7 @@
 Summary:	Asterisk huawei 3g dongle channel driver
 Name:		asterisk-chan_dongle
 Version:	1.1
-Release:	0.%{snap}.1
+Release:	0.%{snap}.2
 License:	GPL v2
 Group:		Applications
 Source0:	https://github.com/bg111/asterisk-chan-dongle/archive/master.zip
@@ -40,11 +40,11 @@ modems (dongles). At this moment, the supported features are:
 %patch -P1 -p1
 
 %build
-install /usr/share/automake/{config.*,install-sh,missing} .
+install /usr/share/automake/{config.*,install-sh,missing,compile} .
 %{__aclocal}
 %{__autoconf}
 %configure \
-	--with-astversion=$(rpm -q --queryformat "%{VERSION}\n" asterisk-devel | awk -F. ' { printf("%d%02d%02d", $1, $2, $3); } ')
+	--with-astversion=$(rpm -q --queryformat "%%{VERSION}\n" asterisk-devel | awk -F. ' { printf("%d%02d%02d", $1, $2, $3); } ')
 %{__make}
 
 %install
